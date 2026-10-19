@@ -64,7 +64,7 @@ A versão web roda diretamente em qualquer navegador moderno, sem necessidade de
 
 1. **Faça o download ou clone o repositório:**
    ```bash
-   git clone https://github.com/seu-usuario/mff-cashflow.git
+   git clone https://github.com/mfferr/mff-cashflow.git
    cd mff-cashflow
    ```
 
