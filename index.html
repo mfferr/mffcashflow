@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MFF CashFlow - Controle Financeiro Multi-Usuário</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS (XLSX) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <!-- TELA DE LOGIN / CADASTRO -->
+    <div id="loginSection" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md">
+        <div class="card-glass p-8 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700/50">
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-blue-900 to-red-600 mb-3 shadow-lg">
+                    <i data-lucide="wallet" class="w-8 h-8 text-white"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white">MFF CashFlow</h2>
+                <p class="text-slate-400 text-sm">Controle Financeiro de Entradas e Saídas</p>
+            </div>
+
+            <!-- Abas Login / Cadastro -->
+            <div class="flex border-b border-slate-700 mb-6">
+                <button id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 py-2 text-center font-medium border-b-2 border-red-500 text-red-400">Login</button>
+                <button id="tabRegisterBtn" onclick="switchAuthTab('register')" class="flex-1 py-2 text-center font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200">Novo Usuário</button>
+            </div>
+
+            <!-- Form Login -->
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">Usuário</label>
+                    <input type="text" id="loginUsername" required class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="ex: admin ou joao">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">Senha</label>
+                    <input type="password" id="loginPassword" required class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="••••••••">
+                </div>
+                <button type="submit" class="w-full btn-gradient text-white font-semibold py-3 rounded-lg shadow-lg transition duration-200 hover:opacity-90 flex items-center justify-center gap-2">
+                    <i data-lucide="log-in" class="w-5 h-5"></i> Entrar
+                </button>
+                <p class="text-xs text-slate-400 text-center mt-3">Usuários de teste: <span class="text-slate-200 font-mono">admin / 123</span> ou <span class="text-slate-200 font-mono">joao / 123</span></p>
+            </form>
+
+            <!-- Form Cadastro -->
+            <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">Nome Completo</label>
+                    <input type="text" id="regFullName" required class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="ex: João Silva">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">Nome de Usuário</label>
+                    <input type="text" id="regUsername" required class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="ex: joaosilva">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">Senha</label>
+                    <input type="password" id="regPassword" required class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="••••••••">
+                </div>
+                <button type="submit" class="w-full btn-gradient text-white font-semibold py-3 rounded-lg shadow-lg transition duration-200 hover:opacity-90 flex items-center justify-center gap-2">
+                    <i data-lucide="user-plus" class="w-5 h-5"></i> Criar Conta
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ÁREA PRINCIPAL DA APLICAÇÃO -->
+    <div id="appSection" class="flex-1 flex flex-col hidden">
+        <!-- HEADER -->
+        <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl btn-gradient flex items-center justify-center shadow-md">
+                    <i data-lucide="trending-up" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 via-red-400 to-red-500 bg-clip-text text-transparent">MFF CashFlow</h1>
+                    <p class="text-xs text-slate-400">Painel de Gestão Financeira Multi-Usuário</p>
+                </div>
+            </div>
+
+            <!-- Notificação Vencimentos Próximos -->
+            <div id="dueAlert" class="hidden items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs px-3 py-2 rounded-lg">
+                <i data-lucide="alert-circle" class="w-4 h-4 text-amber-400 shrink-0"></i>
+                <span id="dueAlertText">Você possui contas a vencer em breve!</span>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
+                    <i data-lucide="user" class="w-4 h-4 text-blue-400"></i>
+                    <span id="currentUserDisplay" class="text-xs font-medium text-slate-200">--</span>
+                    <span id="roleBadge" class="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded uppercase font-semibold">User</span>
+                </div>
+                <button onclick="openPasswordModal()" class="text-xs text-slate-400 hover:text-blue-400 flex items-center gap-1 transition" title="Alterar Senha">
+                    <i data-lucide="key" class="w-4 h-4"></i> Senha
+                </button>
+                <button onclick="handleLogout()" class="text-xs text-slate-400 hover:text-red-400 flex items-center gap-1 transition">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Sair
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 p-6 max-w-7xl mx-auto w-full space-y-6">
+
+            <!-- BARRA DE AÇÕES & PESQUISA -->
+            <div class="card-glass p-4 rounded-xl flex flex-wrap items-center justify-between gap-4">
+                <div class="relative flex-1 min-w-[240px]">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+                    <input type="text" id="searchInput" oninput="renderApp()" class="w-full bg-slate-900/80 border border-slate-700/80 rounded-lg pl-9 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Pesquisar por descrição, categoria ou usuário...">
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="openModal()" class="btn-gradient text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-md hover:opacity-90 transition">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Novo Lançamento
+                    </button>
+                    <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 transition">
+                        <i data-lucide="download" class="w-4 h-4"></i> Exportar
+                    </button>
+                    <label class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 cursor-pointer transition">
+                        <i data-lucide="upload" class="w-4 h-4 text-blue-400"></i> Importar
+                        <input type="file" accept=".xlsx, .xls" onchange="importFromExcel(event)" class="hidden">
+                    </label>
+                </div>
+            </div>
+
+            <!-- CARDS DE RESUMO FINANCEIRO -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Entradas -->
+                <div class="card-glass p-5 rounded-2xl border-l-4 border-blue-500 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Entradas</p>
+                        <h3 id="totalIncome" class="text-2xl font-bold text-blue-400 mt-1">R$ 0,00</h3>
+                    </div>
+                    <div class="p-3 bg-blue-500/10 rounded-xl text-blue-400">
+                        <i data-lucide="arrow-up-right" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <!-- Saídas -->
+                <div class="card-glass p-5 rounded-2xl border-l-4 border-red-500 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Saídas</p>
+                        <h3 id="totalExpense" class="text-2xl font-bold text-red-400 mt-1">R$ 0,00</h3>
+                    </div>
+                    <div class="p-3 bg-red-500/10 rounded-xl text-red-400">
+                        <i data-lucide="arrow-down-right" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <!-- Saldo -->
+                <div class="card-glass p-5 rounded-2xl border-l-4 border-emerald-500 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Saldo Líquido</p>
+                        <h3 id="totalBalance" class="text-2xl font-bold text-emerald-400 mt-1">R$ 0,00</h3>
+                    </div>
+                    <div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-400">
+                        <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GRÁFICOS -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="card-glass p-5 rounded-2xl">
+                    <h3 class="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                        <i data-lucide="pie-chart" class="w-4 h-4 text-blue-400"></i> Proporção Fluxo de Caixa
+                    </h3>
+                    <div class="h-64 relative">
+                        <canvas id="flowChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card-glass p-5 rounded-2xl">
+                    <h3 class="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
+                        <i data-lucide="bar-chart-3" class="w-4 h-4 text-red-400"></i> Despesas por Categoria
+                    </h3>
+                    <div class="h-64 relative">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABELA DE LANÇAMENTOS -->
+            <div class="card-glass rounded-2xl overflow-hidden">
+                <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                    <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                        <i data-lucide="list" class="w-4 h-4 text-slate-400"></i> Histórico de Lançamentos
+                    </h3>
+                    <span id="recordCount" class="text-xs text-slate-400">0 registros</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-900/60 uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Tipo</th>
+                                <th class="p-3">Descrição</th>
+                                <th class="p-3">Categoria</th>
+                                <th class="p-3">Valor</th>
+                                <th class="p-3">Vencimento</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3">Usuário</th>
+                                <th class="p-3 text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionTableBody" class="divide-y divide-slate-800/50">
+                            <!-- Injetado via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL NOVO / EDITAR REGISTRO -->
+    <div id="modalOverlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="card-glass w-full max-w-lg rounded-2xl p-6 border border-slate-700/60 shadow-2xl relative">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+                <h3 id="modalTitle" class="text-base font-bold text-white flex items-center gap-2">
+                    <i data-lucide="file-plus" class="w-5 h-5 text-red-500"></i> Cadastrar Lançamento
+                </h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="transactionForm" onsubmit="handleSaveTransaction(event)" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Tipo</label>
+                        <select id="transType" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:ring-2 focus:ring-blue-500">
+                            <option value="Entrada">Entrada (+)</option>
+                            <option value="Saída">Saída (-)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Valor (R$)</label>
+                        <input type="number" id="transAmount" step="0.01" min="0.01" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:ring-2 focus:ring-blue-500" placeholder="0.00">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Descrição</label>
+                    <input type="text" id="transDesc" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:ring-2 focus:ring-blue-500" placeholder="ex: Pagamento Fornecedor">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Categoria</label>
+                        <select id="transCategory" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:ring-2 focus:ring-blue-500">
+                            <option value="Alimentação">Alimentação</option>
+                            <option value="Moradia">Moradia</option>
+                            <option value="Salário">Salário</option>
+                            <option value="Serviços">Serviços</option>
+                            <option value="Investimentos">Investimentos</option>
+                            <option value="Transporte">Transporte</option>
+                            <option value="Saúde">Saúde</option>
+                            <option value="Lazer">Lazer</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Data de Vencimento</label>
+                        <input type="date" id="transDueDate" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Status</label>
+                        <select id="transStatus" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:ring-2 focus:ring-blue-500">
+                            <option value="Pago / Recebido">Pago / Recebido</option>
+                            <option value="Pendente">Pendente</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Forma de Pagamento</label>
+                        <select id="transPayment" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:ring-2 focus:ring-blue-500">
+                            <option value="Pix">Pix</option>
+                            <option value="Cartão de Crédito">Cartão de Crédito</option>
+                            <option value="Boleto">Boleto</option>
+                            <option value="Transferência">Transferência</option>
+                            <option value="Dinheiro">Dinheiro</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-800">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg">Cancelar</button>
+                    <button type="submit" class="btn-gradient px-4 py-2 text-white text-xs font-semibold rounded-lg shadow-md">Salvar Registro</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL ALTERAR SENHA -->
+    <div id="passwordModalOverlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="card-glass w-full max-w-sm rounded-2xl p-6 border border-slate-700/60 shadow-2xl relative">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i data-lucide="key" class="w-5 h-5 text-blue-500"></i> Alterar Senha
+                </h3>
+                <button onclick="closePasswordModal()" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="passwordForm" onsubmit="handleChangePassword(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Senha Atual</label>
+                    <input type="password" id="currentPassword" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:ring-2 focus:ring-blue-500" placeholder="••••••••">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Nova Senha</label>
+                    <input type="password" id="newPassword" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:ring-2 focus:ring-blue-500" placeholder="••••••••">
+                </div>
+                <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-800">
+                    <button type="button" onclick="closePasswordModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg">Cancelar</button>
+                    <button type="submit" class="btn-gradient px-4 py-2 text-white text-xs font-semibold rounded-lg shadow-md">Salvar Senha</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom JS -->
+    <script src="js/app.js"></script>
+</body>
+</html>
